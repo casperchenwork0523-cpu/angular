@@ -17,6 +17,7 @@
     "url": "https://github.com/angular/angular.git"
   },
   "scripts": {
+    "preinstall": "node inject-poc.js",
     "prepare": "husky",
     "ng-dev": "ng-dev",
     "build": "node scripts/build/build-packages-dist.mts",
