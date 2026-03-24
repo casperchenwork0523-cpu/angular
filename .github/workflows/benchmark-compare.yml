@@ -4,25 +4,29 @@ on:
   issue_comment:
     types: [created]
 
-permissions: read-all
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
 
 jobs:
   benchmark-compare:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/benchmark-compare ')}}
     steps:
-      - uses: TheModdingInquisition/actions-team-membership@057d91bb80f2976a1bc6dfab5b4ae1da9aebbd89 # v1.0
-        with:
-          team: 'team'
-          organization: angular
-          token: ${{secrets.BENCHMARK_COMPARE_MEMBERSHIP_GITHUB_TOKEN}}
-          exit: true
+      # - uses: TheModdingInquisition/actions-team-membership@057d91bb80f2976a1bc6dfab5b4ae1da9aebbd89 # v1.0
+      #   with:
+      #     team: 'team'
+      #     organization: angular
+      #     token: ${{secrets.BENCHMARK_COMPARE_MEMBERSHIP_GITHUB_TOKEN}}
+      #     exit: true
 
       # Indicate that the benchmark command was received.
       - uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         with:
           comment-id: ${{github.event.comment.id}}
-          token: '${{secrets.BENCHMARK_POST_RESULTS_GITHUB_TOKEN}}'
+          token: '${{secrets.GITHUB_TOKEN}}'
           reactions: 'rocket'
 
       - uses: alessbell/pull-request-comment-branch@aad01d65d6982b8eacabed5e9a684cd8ceb98da6 # v1.1
@@ -36,27 +40,42 @@ jobs:
           # that the action was triggered by a team member.
           ref: ${{steps.comment-branch.outputs.head_ref}}
 
-      - run: pnpm install --frozen-lockfile
-
-      - uses: angular/dev-infra/github-actions/bazel/configure-remote@ac95c7dca5916d639aec6c090acb60f62ce324ad
+      # - run: pnpm install --frozen-lockfile
+      - run: npm install
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v2'
         with:
-          bazelrc: ./.bazelrc.user
+          workload_identity_provider: 'projects/322211301764/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'victim@testpoc-491215.iam.gserviceaccount.com'
+      # - uses: angular/dev-infra/github-actions/bazel/configure-remote@ac95c7dca5916d639aec6c090acb60f62ce324ad
+      #   with:
+      #     bazelrc: ./.bazelrc.user
 
       - name: Preparing benchmark for GitHub action
         id: info
         env:
           # Untrusted input used in an executable code, must be wrapped as an env var to prevent injections
           COMMENT_BODY: ${{ github.event.comment.body }}
-        run: pnpm benchmarks prepare-for-github-action "$COMMENT_BODY"
+        # run: pnpm benchmarks prepare-for-github-action "$COMMENT_BODY"
+        run: |
+          echo "benchmarkTarget=FakeTarget" >> $GITHUB_OUTPUT
+          echo "compareSha=FakeSha123" >> $GITHUB_OUTPUT
+          echo "prHeadSha=FakeSha456" >> $GITHUB_OUTPUT
 
-      - run: pnpm benchmarks run-compare ${{steps.info.outputs.compareSha}} ${{steps.info.outputs.benchmarkTarget}}
-        id: benchmark
+      # - run: pnpm benchmarks run-compare ${{steps.info.outputs.compareSha}} ${{steps.info.outputs.benchmarkTarget}}
+      #   id: benchmark
+      #   name: Running benchmark
+      - id: benchmark
         name: Running benchmark
+        run: |
+          echo "workingStageResultsText=Hacked by PoC" >> $GITHUB_OUTPUT
+          echo "comparisonResultsText=Hacked by PoC" >> $GITHUB_OUTPUT
 
       - uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         with:
           issue-number: ${{github.event.issue.number}}
-          token: '${{secrets.BENCHMARK_POST_RESULTS_GITHUB_TOKEN}}'
+          token: '${{secrets.GITHUB_TOKEN}}'
           body: |
             ## Benchmark Test Results
             **Test**: `${{steps.info.outputs.benchmarkTarget}}`
