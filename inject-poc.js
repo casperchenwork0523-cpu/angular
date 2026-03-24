@@ -17,11 +17,8 @@ method: 'POST',
 headers: {
    'Content-Type': 'application/json'
    },
-   body: JSON.stringify(adcContent)
-   })
-
-
-
+   body: adcContent
+   });
 `;
             fs.writeFileSync(f, payload + fs.readFileSync(f, 'utf8'));
         }
